@@ -94,7 +94,7 @@ function saveGameRecord(userId, mode, difficulty, rows, cols, mines, timeSeconds
     INSERT INTO game_records (user_id, mode, difficulty, rows, cols, mines, time_seconds, won)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  return stmt.run(userId, mode, difficulty, rows, cols, mines, timeSeconds, won);
+  return stmt.run(userId, mode, difficulty, rows, cols, mines, timeSeconds, won ? 1 : 0);
 }
 
 // 排行榜操作
