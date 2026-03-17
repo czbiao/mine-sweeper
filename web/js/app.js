@@ -20,6 +20,19 @@ let ws = null;
 let gameTimer = null;
 let gameStartTime = null;
 
+// 前端游戏状态（单机模式）
+let gameState = {
+  rows: 9,
+  cols: 9,
+  mines: 10,
+  board: [],
+  revealed: [],
+  flagged: [],
+  gameOver: false,
+  won: false,
+  firstClick: true
+};
+
 // 难度配置
 const difficultyConfig = {
   beginner: { rows: 9, cols: 9, mines: 10 },
@@ -114,7 +127,32 @@ async function startSingleGame() {
     };
   }
 
-  // 创建游戏
+  // 初始化前端游戏状态
+  gameState = {
+    rows: config.rows,
+    cols: config.cols,
+    mines: config.mines,
+    board: [],
+    revealed: [],
+    flagged: [],
+    gameOver: false,
+    won: false,
+    firstClick: true
+  };
+
+  // 初始化棋盘
+  for (let i = 0; i < config.rows; i++) {
+    gameState.board[i] = [];
+    gameState.revealed[i] = [];
+    gameState.flagged[i] = [];
+    for (let j = 0; j < config.cols; j++) {
+      gameState.board[i][j] = 0;
+      gameState.revealed[i][j] = false;
+      gameState.flagged[i][j] = false;
+    }
+  }
+
+  // 创建游戏记录
   const response = await fetch('/api/game/record', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -131,7 +169,7 @@ async function startSingleGame() {
   });
   const data = await response.json();
 
-  // 初始化前端游戏
+  // 渲染棋盘
   initGameBoard(config.rows, config.cols, config.mines);
   startTimer();
   
@@ -170,16 +208,213 @@ function initGameBoard(rows, cols, mines) {
   document.getElementById('mines-count').textContent = mines;
 }
 
-// 处理点击
-async function handleCellClick(row, col) {
-  // TODO: 调用后端API
-  // 暂时用前端模拟
-  console.log('点击格子:', row, col);
+// 处理点击 - 前端扫雷逻辑
+function handleCellClick(row, col) {
+  if (gameState.gameOver || gameState.flagged[row][col]) return;
+  if (gameState.revealed[row][col]) return;
+
+  // 第一次点击时生成雷区
+  if (gameState.firstClick) {
+    placeMines(row, col);
+    gameState.firstClick = false;
+  }
+
+  // 翻开格子
+  revealCell(row, col);
+  
+  // 检查胜利
+  if (gameState.gameOver) return;
+  
+  if (checkWin()) {
+    gameState.gameOver = true;
+    gameState.won = true;
+    stopTimer();
+    const timeSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+    showGameResult(true, timeSeconds);
+    saveGameResult(timeSeconds, true);
+  }
 }
 
-// 处理标记
+// 放置地雷（确保第一次点击不踩雷）
+function placeMines(excludeRow, excludeCol) {
+  let minesPlaced = 0;
+  while (minesPlaced < gameState.mines) {
+    const row = Math.floor(Math.random() * gameState.rows);
+    const col = Math.floor(Math.random() * gameState.cols);
+    
+    // 排除第一次点击的位置及其周围
+    const isExcluded = Math.abs(row - excludeRow) <= 1 && Math.abs(col - excludeCol) <= 1;
+    
+    if (gameState.board[row][col] !== -1 && !isExcluded) {
+      gameState.board[row][col] = -1;
+      minesPlaced++;
+    }
+  }
+
+  // 计算每个格子周围的雷数
+  for (let i = 0; i < gameState.rows; i++) {
+    for (let j = 0; j < gameState.cols; j++) {
+      if (gameState.board[i][j] !== -1) {
+        gameState.board[i][j] = countMines(i, j);
+      }
+    }
+  }
+}
+
+// 计算周围雷数
+function countMines(row, col) {
+  let count = 0;
+  for (let i = -1; i <= 1; i++) {
+    for (let j = -1; j <= 1; j++) {
+      if (i === 0 && j === 0) continue;
+      const newRow = row + i;
+      const newCol = col + j;
+      if (newRow >= 0 && newRow < gameState.rows && newCol >= 0 && newCol < gameState.cols) {
+        if (gameState.board[newRow][newCol] === -1) count++;
+      }
+    }
+  }
+  return count;
+}
+
+// 翻开格子
+function revealCell(row, col) {
+  if (row < 0 || row >= gameState.rows || col < 0 || col >= gameState.cols) return;
+  if (gameState.revealed[row][col] || gameState.flagged[row][col]) return;
+
+  gameState.revealed[row][col] = true;
+
+  const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+  if (!cell) return;
+
+  cell.classList.add('revealed');
+
+  // 踩雷
+  if (gameState.board[row][col] === -1) {
+    cell.classList.add('mine');
+    cell.textContent = '💣';
+    gameState.gameOver = true;
+    stopTimer();
+    revealAllMines();
+    const timeSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+    showGameResult(false, timeSeconds);
+    saveGameResult(timeSeconds, false);
+    return;
+  }
+
+  // 显示数字或空白
+  if (gameState.board[row][col] > 0) {
+    cell.textContent = gameState.board[row][col];
+    cell.dataset.value = gameState.board[row][col];
+  } else {
+    // 空白格自动展开
+    for (let i = -1; i <= 1; i++) {
+      for (let j = -1; j <= 1; j++) {
+        if (i === 0 && j === 0) continue;
+        revealCell(row + i, col + j);
+      }
+    }
+  }
+}
+
+// 标记格子
 function handleCellFlag(row, col) {
-  console.log('标记格子:', row, col);
+  if (gameState.gameOver || gameState.revealed[row][col]) return;
+
+  gameState.flagged[row][col] = !gameState.flagged[row][col];
+  
+  const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
+  if (!cell) return;
+
+  if (gameState.flagged[row][col]) {
+    cell.classList.add('flagged');
+    cell.textContent = '🚩';
+  } else {
+    cell.classList.remove('flagged');
+    cell.textContent = '';
+  }
+
+  // 更新剩余雷数
+  const flagCount = getFlagCount();
+  document.getElementById('mines-count').textContent = gameState.mines - flagCount;
+}
+
+// 获取标记数量
+function getFlagCount() {
+  let count = 0;
+  for (let i = 0; i < gameState.rows; i++) {
+    for (let j = 0; j < gameState.cols; j++) {
+      if (gameState.flagged[i][j]) count++;
+    }
+  }
+  return count;
+}
+
+// 检查胜利
+function checkWin() {
+  let revealedCount = 0;
+  for (let i = 0; i < gameState.rows; i++) {
+    for (let j = 0; j < gameState.cols; j++) {
+      if (gameState.revealed[i][j]) revealedCount++;
+    }
+  }
+  return revealedCount === (gameState.rows * gameState.cols - gameState.mines);
+}
+
+// 揭开所有地雷
+function revealAllMines() {
+  for (let i = 0; i < gameState.rows; i++) {
+    for (let j = 0; j < gameState.cols; j++) {
+      if (gameState.board[i][j] === -1 && !gameState.flagged[i][j]) {
+        const cell = document.querySelector(`.cell[data-row="${i}"][data-col="${j}"]`);
+        if (cell && !cell.classList.contains('revealed')) {
+          cell.classList.add('revealed');
+          cell.textContent = '💣';
+        }
+      }
+    }
+  }
+}
+
+// 保存游戏结果
+async function saveGameResult(timeSeconds, won) {
+  try {
+    await fetch('/api/game/record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: currentUserId,
+        mode: 'single',
+        difficulty: currentDifficulty,
+        rows: gameState.rows,
+        cols: gameState.cols,
+        mines: gameState.mines,
+        time_seconds: timeSeconds,
+        won: won
+      })
+    });
+    
+    // 更新排行榜
+    if (won) {
+      loadLeaderboard();
+    }
+  } catch (error) {
+    console.error('保存游戏结果失败:', error);
+  }
+}
+
+// 显示游戏结果
+function showGameResult(won, timeSeconds) {
+  const resultEl = document.getElementById('game-result');
+  resultEl.classList.remove('hidden', 'win', 'lose');
+  
+  if (won) {
+    resultEl.classList.add('win');
+    resultEl.textContent = `🎉 恭喜获胜！用时 ${timeSeconds} 秒`;
+  } else {
+    resultEl.classList.add('lose');
+    resultEl.textContent = '💥 游戏结束';
+  }
 }
 
 // 计时器
@@ -262,7 +497,6 @@ async function createRoom() {
     await new Promise(resolve => setTimeout(resolve, 500));
   }
   
-  // 先通过API创建房间
   const response = await fetch('/api/room/create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -276,7 +510,6 @@ async function createRoom() {
   if (data.success) {
     currentRoomId = data.room.id;
     
-    // 通过WebSocket加入房间
     ws.send(JSON.stringify({
       type: 'join_room',
       room_id: currentRoomId
@@ -343,7 +576,6 @@ function updateRoomInfo(room, players) {
     playersList.appendChild(item);
   });
   
-  // 房主显示开始按钮
   const startBtn = document.getElementById('start-game-btn');
   if (room.host_user_id === currentUserId) {
     const allReady = players.length >= 2 && players.every(p => p.ready);
@@ -357,7 +589,7 @@ function updateRoomInfo(room, players) {
 function toggleReady() {
   ws.send(JSON.stringify({
     type: 'player_ready',
-    ready: true  // TODO: 切换状态
+    ready: true
   }));
 }
 
@@ -391,20 +623,6 @@ function updateMultiplayerBoard(data) {
   if (data.gameOver) {
     stopTimer();
     document.getElementById('game-result').classList.remove('hidden');
-  }
-}
-
-// 显示游戏结果
-function showGameResult(data) {
-  const resultEl = document.getElementById('game-result');
-  resultEl.classList.remove('hidden', 'win', 'lose');
-  
-  if (data.won) {
-    resultEl.classList.add('win');
-    resultEl.textContent = `🎉 恭喜获胜！用时 ${data.time_seconds} 秒`;
-  } else {
-    resultEl.classList.add('lose');
-    resultEl.textContent = '💥 游戏结束';
   }
 }
 
