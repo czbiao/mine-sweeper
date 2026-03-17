@@ -199,6 +199,11 @@ function initGameBoard(rows, cols, mines) {
         e.preventDefault();
         handleCellFlag(i, j);
       });
+      // 双击快速翻开
+      cell.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        handleCellDoubleClick(i, j);
+      });
       
       grid.appendChild(cell);
     }
@@ -233,6 +238,15 @@ function handleCellClick(row, col) {
     showGameResult(true, timeSeconds);
     saveGameResult(timeSeconds, true);
   }
+}
+
+// 处理双击 - 快速翻开周围格子
+function handleCellDoubleClick(row, col) {
+  if (gameState.gameOver) return;
+  if (!gameState.revealed[row][col]) return;
+  if (gameState.board[row][col] <= 0) return;
+  
+  revealCell(row, col, true);
 }
 
 // 放置地雷（确保第一次点击不踩雷）
@@ -278,7 +292,7 @@ function countMines(row, col) {
 }
 
 // 翻开格子
-function revealCell(row, col) {
+function revealCell(row, col, isDoubleClick = false) {
   if (row < 0 || row >= gameState.rows || col < 0 || col >= gameState.cols) return;
   if (gameState.revealed[row][col] || gameState.flagged[row][col]) return;
 
@@ -288,6 +302,9 @@ function revealCell(row, col) {
   if (!cell) return;
 
   cell.classList.add('revealed');
+  
+  // 添加翻开动画
+  cell.style.animation = 'cellReveal 0.2s ease';
 
   // 踩雷
   if (gameState.board[row][col] === -1) {
@@ -315,6 +332,41 @@ function revealCell(row, col) {
       }
     }
   }
+  
+  // 双击快速翻开：周围已标记雷数等于中心数字时，自动翻开周围未标记格子
+  if (isDoubleClick && gameState.board[row][col] > 0) {
+    const flaggedAround = countFlaggedAround(row, col);
+    if (flaggedAround === gameState.board[row][col]) {
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          if (i === 0 && j === 0) continue;
+          const newRow = row + i;
+          const newCol = col + j;
+          if (newRow >= 0 && newRow < gameState.rows && newCol >= 0 && newCol < gameState.cols) {
+            if (!gameState.revealed[newRow][newCol] && !gameState.flagged[newRow][newCol]) {
+              revealCell(newRow, newCol);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// 计算周围标记数
+function countFlaggedAround(row, col) {
+  let count = 0;
+  for (let i = -1; i <= 1; i++) {
+    for (let j = -1; j <= 1; j++) {
+      if (i === 0 && j === 0) continue;
+      const newRow = row + i;
+      const newCol = col + j;
+      if (newRow >= 0 && newRow < gameState.rows && newCol >= 0 && newCol < gameState.cols) {
+        if (gameState.flagged[newRow][newCol]) count++;
+      }
+    }
+  }
+  return count;
 }
 
 // 标记格子
