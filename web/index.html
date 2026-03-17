@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>扫雷大作战</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部导航 -->
+    <header class="header">
+      <h1>扫雷大作战</h1>
+      <div class="mode-switch">
+        <button class="active" data-mode="single">单机练习</button>
+        <button data-mode="multi">在线对战</button>
+      </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <!-- 侧边栏 -->
+      <aside class="sidebar">
+        <!-- 单机模式 -->
+        <div id="single-mode-panel" class="panel">
+          <h3>选择难度</h3>
+          <div class="difficulty-buttons">
+            <button class="diff-btn active" data-difficulty="beginner">初级</button>
+            <button class="diff-btn" data-difficulty="intermediate">中级</button>
+            <button class="diff-btn" data-difficulty="expert">高级</button>
+            <button class="diff-btn" data-difficulty="custom">自定义</button>
+          </div>
+          
+          <div id="custom-settings" class="custom-settings hidden">
+            <label>行数: <input type="number" id="custom-rows" min="9" max="30" value="9"></label>
+            <label>列数: <input type="number" id="custom-cols" min="9" max="30" value="9"></label>
+            <label>雷数: <input type="number" id="custom-mines" min="10" max="200" value="10"></label>
+          </div>
+          
+          <button id="start-single" class="start-btn">开始游戏</button>
+        </div>
+
+        <!-- 在线模式 -->
+        <div id="multi-mode-panel" class="panel hidden">
+          <h3>在线对战</h3>
+          <div class="room-actions">
+            <button id="create-room" class="action-btn">创建房间</button>
+            <div class="join-room">
+              <input type="text" id="room-code-input" placeholder="输入房间码" maxlength="6">
+              <button id="join-room" class="action-btn">加入</button>
+            </div>
+          </div>
+          
+          <div id="room-info" class="room-info hidden">
+            <p>房间码: <span id="display-room-code"></span></p>
+            <div id="players-list"></div>
+            <button id="ready-btn" class="action-btn">准备</button>
+            <button id="start-game-btn" class="action-btn hidden">开始游戏</button>
+          </div>
+        </div>
+
+        <!-- 排行榜 -->
+        <div class="panel leaderboard">
+          <h3>排行榜</h3>
+          <select id="leaderboard-difficulty">
+            <option value="beginner">初级</option>
+            <option value="intermediate">中级</option>
+            <option value="expert">高级</option>
+          </select>
+          <ul id="leaderboard-list"></ul>
+        </div>
+      </aside>
+
+      <!-- 游戏区域 -->
+      <section class="game-area">
+        <div class="game-info">
+          <div class="timer">时间: <span id="timer">0</span>s</div>
+          <div class="mines-count">雷数: <span id="mines-count">0</span></div>
+        </div>
+        
+        <div id="game-board" class="game-board">
+          <div class="start-hint">点击"开始游戏"开始</div>
+        </div>
+        
+        <div id="game-result" class="game-result hidden"></div>
+        
+        <button id="restart-btn" class="restart-btn hidden">再来一局</button>
+      </section>
+    </main>
+
+    <!-- 底部信息 -->
+    <footer class="footer">
+      <span>设备ID: <span id="device-id"></span></span>
+    </footer>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

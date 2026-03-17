@@ -1,0 +1,372 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: #333;
+}
+
+#app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 头部 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 15px 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 24px;
+  color: #667eea;
+}
+
+.mode-switch {
+  display: flex;
+  gap: 10px;
+}
+
+.mode-switch button {
+  padding: 8px 20px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mode-switch button.active {
+  background: #667eea;
+  color: white;
+}
+
+/* 主内容 */
+.main-content {
+  display: flex;
+  gap: 20px;
+}
+
+/* 侧边栏 */
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.panel {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.panel h3 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* 难度按钮 */
+.difficulty-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.diff-btn {
+  padding: 10px;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.diff-btn.active {
+  border-color: #667eea;
+  background: #667eea;
+  color: white;
+}
+
+/* 自定义设置 */
+.custom-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.custom-settings label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.custom-settings input {
+  width: 80px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* 按钮 */
+.start-btn, .action-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: #667eea;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.start-btn:hover, .action-btn:hover {
+  background: #5568d3;
+}
+
+/* 房间操作 */
+.room-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.join-room {
+  display: flex;
+  gap: 10px;
+}
+
+.join-room input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+/* 房间信息 */
+.room-info {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.room-info p {
+  margin-bottom: 10px;
+}
+
+#display-room-code {
+  font-size: 20px;
+  font-weight: bold;
+  color: #667eea;
+  letter-spacing: 2px;
+}
+
+#players-list {
+  margin: 10px 0;
+}
+
+.player-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  margin-bottom: 5px;
+}
+
+.player-item.host::before {
+  content: '👑 ';
+}
+
+.player-item.ready {
+  background: #d4edda;
+}
+
+.player-item .ready-status {
+  color: #28a745;
+}
+
+/* 排行榜 */
+.leaderboard select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+#leaderboard-list {
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#leaderboard-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+#leaderboard-list li:first-child {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* 游戏区域 */
+.game-area {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.game-info {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.timer, .mines-count {
+  background: #f5f5f5;
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+
+/* 游戏棋盘 */
+.game-board {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.start-hint {
+  color: #999;
+  font-size: 18px;
+}
+
+.board-grid {
+  display: grid;
+  gap: 2px;
+  background: #ccc;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+  background: #e0e0e0;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.1s;
+}
+
+.cell:hover:not(.revealed):not(.flagged) {
+  background: #d0d0d0;
+}
+
+.cell.revealed {
+  background: #fff;
+  cursor: default;
+}
+
+.cell.flagged {
+  background: #ffeeba;
+}
+
+.cell.mine {
+  background: #ff6b6b;
+}
+
+.cell[data-value="1"] { color: #2196F3; }
+.cell[data-value="2"] { color: #4CAF50; }
+.cell[data-value="3"] { color: #F44336; }
+.cell[data-value="4"] { color: #9C27B0; }
+.cell[data-value="5"] { color: #FF9800; }
+.cell[data-value="6"] { color: #00BCD4; }
+.cell[data-value="7"] { color: #333; }
+.cell[data-value="8"] { color: #666; }
+
+/* 游戏结果 */
+.game-result {
+  text-align: center;
+  padding: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.game-result.win {
+  color: #28a745;
+}
+
+.game-result.lose {
+  color: #dc3545;
+}
+
+/* 重新开始按钮 */
+.restart-btn {
+  display: block;
+  margin: 20px auto 0;
+  padding: 12px 30px;
+  border: none;
+  background: #667eea;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* 底部 */
+.footer {
+  text-align: center;
+  margin-top: 20px;
+  color: white;
+  font-size: 12px;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+  }
+  
+  .cell {
+    width: 25px;
+    height: 25px;
+    font-size: 12px;
+  }
+}
